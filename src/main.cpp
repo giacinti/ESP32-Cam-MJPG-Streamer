@@ -17,7 +17,7 @@ void message(String msg)
 
 void handle_stream(void)
 {
-	#if 0
+	#if 1
 	String args=server.arg(0);
 	message("arg, name="+server.argName(0)+" value="+server.arg(0));
 	#endif
@@ -44,7 +44,6 @@ void handle_stream(void)
     }
 }
 
-#if 0
 void handle_image(void)
 {
 	WiFiClient client = server.client();
@@ -53,13 +52,12 @@ void handle_image(void)
     if (!client.connected())
         return;
     String response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-disposition: inline; filename=capture.jpg\r\n";
+    response += "Content-disposition: inline\r\n";
     response += "Content-type: image/jpeg\r\n";
     response += "Content-Length: " + String(cam.getSize()) + "\r\n\r\n";
     server.sendContent(response);
     client.write((char *)cam.getfb(), cam.getSize());
 }
-#endif
 
 void handleNotFound()
 {
@@ -87,8 +85,8 @@ void setup() {
     esp32cam_aithinker_config.jpeg_quality = 10;
     /*int camInit = */cam.init(esp32cam_aithinker_config);
    
-    server.on("/", HTTP_GET, handle_stream);
-	// server.on("/image", HTTP_GET, handle_image);
+    //server.on("/", HTTP_GET, handle_stream);
+	server.on("/image", HTTP_GET, handle_image);
     server.onNotFound(handleNotFound);
 	
     portal.begin();
