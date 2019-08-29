@@ -17,42 +17,41 @@ class ThrdHTTPServer(ThreadingMixIn, HTTPServer):
 
 
 class MyHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-		if self.path.endswith('/stream'):
-			self.handle_stream("http:/"+self.path.replace("/stream","/image"))
-		elif self.path.endswith('/image'):
-			self.handle_image("http:/"+self.path)
-        else:
-            self.send_response(404)
-		
-	def send_one_image(self,uri):
-		with loop_mutex:
-			req = urllib.request.urlopen(uri)
-			for h in req.info().items():
-				self.send_header(h[0],h[1])
-			self.end_headers()
-			return self.wfile.write(req.read())
+        def do_GET(self):
+                if self.path.endswith('/stream'):
+                        self.handle_stream("http:/"+self.path.replace("/stream","/image"))
+                elif self.path.endswith('/image'):
+                        self.handle_image("http:/"+self.path)
+                else:
+                        self.send_response(404)
 
-			
-	def stream_loop(self,uri):
-		while True:
-			try:
-				self.send_one_image(uri)
-				self.wfile.write(bytes(BOUNDARY+"\r\n",'UTF8'))
-				time.sleep(1/FPS)
-			except Exception:
-				return
-			
-	def handle_stream(self,uri):
-		self.send_response(200)
-		self.send_header('Content-type',"multipart/x-mixed-replace; boundary="+BOUNDARY)
-		self.end_headers()
-		self.flush_headers()
-		return self.stream_loop(uri)
-		
-	def handle_image(self,uri):
-		self.send_response(200)
-		return self.send_one_image(uri)
+        def send_one_image(self,uri):
+                with loop_mutex:
+                        req = urllib.request.urlopen(uri)
+                        for h in req.info().items():
+                                self.send_header(h[0],h[1])
+                        self.end_headers()
+                        return self.wfile.write(req.read())
+
+        def stream_loop(self,uri):
+                while True:
+                        try:
+                                self.send_one_image(uri)
+                                self.wfile.write(bytes(BOUNDARY+"\r\n",'UTF8'))
+                                time.sleep(1/FPS)
+                        except Exception:
+                                return
+
+        def handle_stream(self,uri):
+                self.send_response(200)
+                self.send_header('Content-type',"multipart/x-mixed-replace; boundary="+BOUNDARY)
+                self.end_headers()
+                self.flush_headers()
+                return self.stream_loop(uri)
+
+        def handle_image(self,uri):
+                self.send_response(200)
+                return self.send_one_image(uri)
 
 if __name__ == '__main__':
     server_class = ThrdHTTPServer
