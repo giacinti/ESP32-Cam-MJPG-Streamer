@@ -18,10 +18,11 @@ class ThrdHTTPServer(ThreadingMixIn, HTTPServer):
 
 class MyHandler(BaseHTTPRequestHandler):
         def do_GET(self):
-                if self.path.endswith('/stream'):
-                        self.handle_stream("http:/"+self.path.replace("/stream","/image"))
-                elif self.path.endswith('/image'):
-                        self.handle_image("http:/"+self.path)
+                uri=self.path.split('?')[0] # potentially remove options - octoprint do that
+                if uri.endswith('/stream'):
+                        self.handle_stream("http:/"+uri.replace("/stream","/image"))
+                elif uri.endswith('/image'):
+                        self.handle_image("http:/"+uri)
                 else:
                         self.send_response(404)
 
